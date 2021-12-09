@@ -65,11 +65,11 @@ int main(int argc, char *argv[]){
             1,  3,  6,  10, 15, 21, 28, 36, 45, 55, 2,  14,
             27, 41, 56, 8,  25, 43, 62, 18, 39, 61, 20, 44
         };
-        int temp;
-        char B[5][5];
-        char C[5];
-        char D[5];
-        char pi[1][1];
+        unsigned char temp;
+        unsigned char B[5][5];
+        unsigned char C[5];
+        unsigned char D[5];
+        unsigned char pi[1][1];
     /*
     TO DO 
     ABSORB
@@ -96,17 +96,17 @@ int main(int argc, char *argv[]){
 
     for(int i = 2; i < argc; i++)
       {
-	inputLen += strlen(argv[i]) + 1; 
+	    inputLen += strlen(argv[i]) + 1; 
         input = (char*)realloc(input, inputLen);
         strcat(input, " ");
         strcat(input, argv[i]);
-    }
+      }
     
     //pad the input using the pad function
-    int blockCount = pad(input,inputLen);
+    unsigned char blockCount = pad(input,inputLen);
   
     // Napravi niz matrica 5x5 i postavi prvih RATE clanova na one iz input stringa
-    char blocks[blockCount][MATRIX_DIM][MATRIX_DIM];
+    int blocks[blockCount][MATRIX_DIM][MATRIX_DIM];
     int p=0;
     for (int i = 0; i < blockCount; i++)
     {
@@ -130,7 +130,7 @@ int main(int argc, char *argv[]){
     free(input);
 
     // initialize the state S to a inputing of b zero bits
-    char state[MATRIX_DIM][MATRIX_DIM];
+    unsigned char state[MATRIX_DIM][MATRIX_DIM];
     for(int i = 0; i < MATRIX_DIM; i++)
         for (int k = 0; k < MATRIX_DIM; k++)
             state[i][k] = 0x00;
@@ -155,27 +155,27 @@ int main(int argc, char *argv[]){
         {
 
             //theta
-            for (int x = 0; x < 5; x++)
+            for (int x = 0; x < MATRIX_DIM; x++)
             {
                 C[x] = state[x][0];
-                for (int y = 1; y < 5; y++)
+                for (int y = 1; y < MATRIX_DIM; y++)
                     C[x] ^= state[x][y];
             }
 
-            for (int x = 0; x < 5; x++)
+            for (int x = 0; x < MATRIX_DIM; x++)
             {
-                D[x] = C[x-1] ^ rotate_right(C[(x + 1) % 5], 1);
-                for (int y = 0; y < 5; y++)
+                D[x] = C[x-1] ^ rotate_right(C[(x + 1) % MATRIX_DIM], 1);
+                for (int y = 0; y < MATRIX_DIM; y++)
                 {
                     state[x][y] ^= D[x];
                 }
             }
 
             //chi
-            for (int x = 0; x < 5; x++)
+            for (int x = 0; x < MATRIX_DIM; x++)
             {
-                for (int y = 0; y < 5; y++)
-                    state[x][y] = state[x][y] ^ (~state[(x + 1) % 5][y] & state[(x + 2) % 5][y]);
+                for (int y = 0; y < MATRIX_DIM; y++)
+                    state[x][y] = state[x][y] ^ (~state[(x + 1) % MATRIX_DIM][y] & state[(x + 2) % MATRIX_DIM][y]);
             }
 
             //rho
@@ -187,18 +187,18 @@ int main(int argc, char *argv[]){
 
                 temp = x;
                 x = y;
-                y = (2*temp + 3*y) % 5;
+                y = (2*temp + 3*y) % MATRIX_DIM;
             }
             //merge ?
             //pi
-            for(int x = 0; x < 5; x++)
+            for(int x = 0; x < MATRIX_DIM; x++)
             {
-                for(int y = 0; y < 5; y++)
+                for(int y = 0; y < MATRIX_DIM; y++)
                 {
                     pi[1][1] = state[x][y];
                     temp = x;
                     x = y;
-                    y = (2*temp + 3*y) % 5;
+                    y = (2*temp + 3*y) % MATRIX_DIM;
                     B[x][y] = pi[1][1];
                 }
             state[x][y] = B[x][y];
@@ -212,10 +212,10 @@ int main(int argc, char *argv[]){
     }
 
     //initialize Z to be the empty string
-    char z[OUTPUT_SIZE + 1];
+    unsigned char z[OUTPUT_SIZE + 1];
     for (size_t i = 0; i < OUTPUT_SIZE; i++)
     {
-        z[i] = 0x00;
+        z[i] = 0x0000;
     }
     z[OUTPUT_SIZE] = '\0';
     
@@ -233,7 +233,17 @@ int main(int argc, char *argv[]){
         if(p == OUTPUT_SIZE - 1)
             break;
     }
-    printf("Sha3 digest: %s",z);
+    printf("Sha3 digest: %s\n\n0x",z);
+    for (size_t i = 0; i < OUTPUT_SIZE; i++)
+    {
+         printf("%02x",z[i]);
+    }
+    printf("\n\n",z);
+    for (size_t i = 0; i < OUTPUT_SIZE; i++)
+    {
+         printf("%x ",z[i]);
+    }
+    
 
     //if Z is still less than d bits long, apply f to S, yielding a new state S
     //truncate Z to d bits

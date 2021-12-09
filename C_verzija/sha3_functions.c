@@ -37,7 +37,7 @@
 
             for (int x = 0; x < 5; x++)
             {
-                D[x] = C[x-1] ^ rotate_right(C[(x + 1) % 5], 1);
+                D[x] = C[x-1] ^ rotate_right(C[x + 1], 1);
                 for (int y = 0; y < 5; y++)
                 {
                     *(A[x][y]) ^= D[x];
@@ -60,7 +60,7 @@
 
                 temp = x;
                 x = y;
-                y = (2*temp + 3*y) % 5;
+                y = 2*temp + 3*y;
             }
             //merge ?
             //pi
@@ -71,7 +71,7 @@
                     pi[1][1] = *(A[x][y]);
                     temp = x;
                     x = y;
-                    y = (2*temp + 3*y) % 5;
+                    y = 2*temp + 3*y;
                     B[x][y] = pi[1][1];
                 }
             }
