@@ -4,10 +4,10 @@
 
 #include "sha3_functions.h"
 
-#define RATE (64/8)      //  12
-#define CAPACITY (136/8) // +13
-#define SIZE (200/8)     // =25
-#define OUTPUT_SIZE 11
+#define RATE (576/8)       //  12
+#define CAPACITY (1024/8)    // +13
+#define SIZE (1600/8)       // =25
+#define OUTPUT_SIZE (512/8)
 
 #define MATRIX_DIM 5
 
@@ -32,7 +32,7 @@ int pad(char *input, int length)
 	a++;
 	input = (char*)realloc(input, a*RATE + 1); 
         input[length] = 0x80;
-        for(unsigned int i = length + 1; i < a*RATE - 2; i++)
+        for( int i = length + 1; i < a*RATE - 2; i++)
         {
             input[i] = 0x00;
         }
@@ -51,25 +51,25 @@ int main(int argc, char *argv[]){
     }
 
         // constants
-        const char keccakf_rndc[24] = {
-            0x01, 0x82, 0xff,
-            0x80, 0x8b, 0xf1,
-            0xa1, 0x89, 0x8a,
-            0xaf, 0x09, 0x0a,
-            0xcb, 0x88, 0x8f,
-            0x83, 0xf2, 0xa0,
-            0x0a, 0x8a, 0xc1,
-            0xf0, 0xc1, 0xb8
+        const uint64_t keccakf_rndc[24] = {
+            0x8000000001, 0x00a0000082, 0x0030a0a0ff,
+            0x000a00d080, 0x00d000a08b, 0x040000f0f1,
+            0x00c00000a1, 0x00500f0089, 0x005000c08a,
+            0x00d00000af, 0x00a0000d09, 0x000200200a,
+            0x00f00000cb, 0x00f000d088, 0x005000208f,
+            0x000a000083, 0x00d00000f2, 0x00006000a0,
+            0x0d0000f00a, 0x00c000038a, 0x00200400c1,
+            0x0000b000f0, 0x0dc00000c1, 0x08004300b8
         };
-        const char keccakf_rotc[25] = {
+        const uint64_t keccakf_rotc[25] = {
             1,  3,  6,  10, 15, 21, 28, 36, 45, 55, 2,  14,
             27, 41, 56, 8,  25, 43, 62, 18, 39, 61, 20, 44
         };
-        unsigned char temp;
-        unsigned char B[5][5];
-        unsigned char C[5];
-        unsigned char D[5];
-        unsigned char pi[1][1];
+         uint64_t temp;
+         uint64_t B[5][5];
+         uint64_t C[5];
+         uint64_t D[5];
+         uint64_t pi[1][1];
     /*
     TO DO 
     ABSORB
@@ -103,10 +103,10 @@ int main(int argc, char *argv[]){
       }
     
     //pad the input using the pad function
-    unsigned char blockCount = pad(input,inputLen);
+    int blockCount = pad(input,inputLen);
   
     // Napravi niz matrica 5x5 i postavi prvih RATE clanova na one iz input stringa
-    int blocks[blockCount][MATRIX_DIM][MATRIX_DIM];
+    uint64_t blocks[blockCount][MATRIX_DIM][MATRIX_DIM];
     int p=0;
     for (int i = 0; i < blockCount; i++)
     {
@@ -121,7 +121,7 @@ int main(int argc, char *argv[]){
                 }
                 else
                 {   
-                    blocks[i][j][k] = 0x00; //ostali bajtovi idu na 0
+                    blocks[i][j][k] = 0x0000000000; //ostali bajtovi idu na 0
                 }
             }
         }
@@ -130,10 +130,10 @@ int main(int argc, char *argv[]){
     free(input);
 
     // initialize the state S to a inputing of b zero bits
-    unsigned char state[MATRIX_DIM][MATRIX_DIM];
+     uint64_t state[MATRIX_DIM][MATRIX_DIM];
     for(int i = 0; i < MATRIX_DIM; i++)
         for (int k = 0; k < MATRIX_DIM; k++)
-            state[i][k] = 0x00;
+            state[i][k] = 0x0000000000;
 
     /*absorb the input into the state: 
     for each block Pi:
@@ -212,10 +212,10 @@ int main(int argc, char *argv[]){
     }
 
     //initialize Z to be the empty string
-    unsigned char z[OUTPUT_SIZE + 1];
+     uint64_t z[OUTPUT_SIZE + 1];
     for (size_t i = 0; i < OUTPUT_SIZE; i++)
     {
-        z[i] = 0x0000;
+        z[i] = 0x00000000;
     }
     z[OUTPUT_SIZE] = '\0';
     
@@ -236,12 +236,12 @@ int main(int argc, char *argv[]){
     printf("Sha3 digest: %s\n\n0x",z);
     for (size_t i = 0; i < OUTPUT_SIZE; i++)
     {
-         printf("%02x",z[i]);
+         printf("%08x",z[i]);
     }
-    printf("\n\n",z);
+    printf("\n\n");
     for (size_t i = 0; i < OUTPUT_SIZE; i++)
     {
-         printf("%x ",z[i]);
+         printf("%08x ",z[i]);
     }
     
 
