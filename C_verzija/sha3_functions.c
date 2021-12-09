@@ -1,6 +1,6 @@
 #include "sha3_functions.h"
 
-    char A[MATRIX_DIM][MATRIX_DIM] keccak_f(char A[MATRIX_DIM][MATRIX_DIM])
+    void keccak_f(char* A[MATRIX_DIM][MATRIX_DIM])
     {
 
         // constants
@@ -37,7 +37,7 @@
 
             for (int x = 0; x < 5; x++)
             {
-                D[x] = C[x-1] ^ rotate_right(C[x + 1], 1);
+                D[x] = C[x-1] ^ rotate_right(C[(x + 1) % 5], 1);
                 for (int y = 0; y < 5; y++)
                 {
                     *(A[x][y]) ^= D[x];
@@ -60,7 +60,7 @@
 
                 temp = x;
                 x = y;
-                y = 2*temp + 3*y;
+                y = (2*temp + 3*y) % 5;
             }
             //merge ?
             //pi
@@ -71,7 +71,7 @@
                     pi[1][1] = *(A[x][y]);
                     temp = x;
                     x = y;
-                    y = 2*temp + 3*y;
+                    y = (2*temp + 3*y) % 5;
                     B[x][y] = pi[1][1];
                 }
             }

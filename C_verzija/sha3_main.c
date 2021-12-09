@@ -36,8 +36,8 @@ int pad(char *input, int length)
         {
             input[i] = 0x00;
         }
-        input[a*RATE - 2] = 0x01;
-	input[a*RATE - 1] = '\0';
+    input[a*RATE - 2] = 0x01;
+    input[a*RATE - 1] = '\0';
     }
     return a;
 }
@@ -49,6 +49,27 @@ int main(int argc, char *argv[]){
         printf("ERROR: Expected at least 1 argument\n");
         return 0;
     }
+
+        // constants
+        const char keccakf_rndc[24] = {
+            0x01, 0x82, 0xff,
+            0x80, 0x8b, 0xf1,
+            0xa1, 0x89, 0x8a,
+            0xaf, 0x09, 0x0a,
+            0xcb, 0x88, 0x8f,
+            0x83, 0xf2, 0xa0,
+            0x0a, 0x8a, 0xc1,
+            0xf0, 0xc1, 0xb8
+        };
+        const char keccakf_rotc[25] = {
+            1,  3,  6,  10, 15, 21, 28, 36, 45, 55, 2,  14,
+            27, 41, 56, 8,  25, 43, 62, 18, 39, 61, 20, 44
+        };
+        int temp;
+        char B[5][5];
+        char C[5];
+        char D[5];
+        char pi[1][1];
     /*
     TO DO 
     ABSORB
@@ -109,10 +130,10 @@ int main(int argc, char *argv[]){
     free(input);
 
     // initialize the state S to a inputing of b zero bits
-    char* state[MATRIX_DIM][MATRIX_DIM];
+    char state[MATRIX_DIM][MATRIX_DIM];
     for(int i = 0; i < MATRIX_DIM; i++)
         for (int k = 0; k < MATRIX_DIM; k++)
-            *(state[i][k]) = 0x00;
+            state[i][k] = 0x00;
 
     /*absorb the input into the state: 
     for each block Pi:
@@ -127,10 +148,67 @@ int main(int argc, char *argv[]){
         {
             for (int k = 0; k < MATRIX_DIM; k++)
             {
-                *(state[j][k]) ^= blocks[i][j][k];
-                keccak_f(state);
+                state[j][k] ^= blocks[i][j][k];
             }
         }
+        for(int n = 0; n < KECCAKF_ROUNDS; n++)
+        {
+
+            //theta
+            for (int x = 0; x < 5; x++)
+            {
+                C[x] = state[x][0];
+                for (int y = 1; y < 5; y++)
+                    C[x] ^= state[x][y];
+            }
+
+            for (int x = 0; x < 5; x++)
+            {
+                D[x] = C[x-1] ^ rotate_right(C[(x + 1) % 5], 1);
+                for (int y = 0; y < 5; y++)
+                {
+                    state[x][y] ^= D[x];
+                }
+            }
+
+            //chi
+            for (int x = 0; x < 5; x++)
+            {
+                for (int y = 0; y < 5; y++)
+                    state[x][y] = state[x][y] ^ (~state[(x + 1) % 5][y] & state[(x + 2) % 5][y]);
+            }
+
+            //rho
+            int x = 1;
+            int y = 0;
+            for(int t = 0; t < 24; t++)
+            {
+                state[x][y] = rotate_right(state[x][y], keccakf_rotc[t]);
+
+                temp = x;
+                x = y;
+                y = (2*temp + 3*y) % 5;
+            }
+            //merge ?
+            //pi
+            for(int x = 0; x < 5; x++)
+            {
+                for(int y = 0; y < 5; y++)
+                {
+                    pi[1][1] = state[x][y];
+                    temp = x;
+                    x = y;
+                    y = (2*temp + 3*y) % 5;
+                    B[x][y] = pi[1][1];
+                }
+            state[x][y] = B[x][y];
+            }
+
+            //iota
+            //arbitrary lane in the state is xored with the constants
+               state[x][y] ^= keccakf_rndc[n];
+        }
+
     }
 
     //initialize Z to be the empty string
@@ -148,7 +226,7 @@ int main(int argc, char *argv[]){
     {
         for (size_t j = 0; j < MATRIX_DIM; j++)
         {
-            z[p++] = *(state[i][j]);
+            z[p++] = state[i][j];
             if(p == OUTPUT_SIZE - 1)
                 break;
         }
