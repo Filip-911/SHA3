@@ -1,20 +1,14 @@
-SRC = sha3_main.c , sha3_functions.c
+SRC = sha3_main.c, sha3_functions.c
 
 OBJ = $(SRC:.c=.o)
 
-NAME = SHA3
+NAME = sha3
 
 ## Functions
 
-all: $(NAME)
-
-$(NAME): $(OBJ)
-	gcc $(OBJ) -o $(SRC)
+all: sha3_main
+sha3_main : sha3_functions.o sha3_main.o
+	gcc –o sha3_main sha3_functions.o sha3_main.o
 
 clean:
 	rm -r $(OBJ)
-
-fclean: clean
-	rm $(NAME)
-
-re: fclean all

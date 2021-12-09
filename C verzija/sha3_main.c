@@ -41,7 +41,7 @@ int main(int argc, char *argv[]){
 
     if(argc != 1) // if there no arguments
     { 
-        printf("ERROR: Expected atleast 1 argument\n");
+        printf("ERROR: Expected at least 1 argument\n");
         return 0;
     }
     /*
@@ -128,7 +128,7 @@ int main(int argc, char *argv[]){
             for (int k = 0; k < MATRIX_DIM; k++)
             {
                 *(state[j][k]) ^= blocks[i][j][k];
-                keccak_f(&state);
+                keccak_f(state);
             }
         }
     }
