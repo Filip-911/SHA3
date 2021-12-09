@@ -1,6 +1,6 @@
 #include "sha3_functions.h"
 
-    void keccak_f(char* A[MATRIX_DIM][MATRIX_DIM])
+    char A[MATRIX_DIM][MATRIX_DIM] keccak_f(char A[MATRIX_DIM][MATRIX_DIM])
     {
 
         // constants
