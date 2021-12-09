@@ -4,12 +4,13 @@
 
 #include "sha3_functions.h"
 
-#define RATE (576/8)       //  12
-#define CAPACITY (1024/8)    // +13
-#define SIZE (1600/8)       // =25
-#define OUTPUT_SIZE (512/8)
+#define WORD_SIZE 64
+#define RATE (576/WORD_SIZE)       //  12
+#define CAPACITY (1024/WORD_SIZE)    // +13
+#define SIZE (1600/WORD_SIZE)       // =25
+#define OUTPUT_SIZE (512/WORD_SIZE)
 
-#define MATRIX_DIM 5
+#define MATRIX_DIM 5    
 
 /*
     SIZE = 25 * 2^l; 
@@ -52,14 +53,14 @@ int main(int argc, char *argv[]){
 
         // constants
         const uint64_t keccakf_rndc[24] = {
-            0x8000000001, 0x00a0000082, 0x0030a0a0ff,
-            0x000a00d080, 0x00d000a08b, 0x040000f0f1,
-            0x00c00000a1, 0x00500f0089, 0x005000c08a,
-            0x00d00000af, 0x00a0000d09, 0x000200200a,
-            0x00f00000cb, 0x00f000d088, 0x005000208f,
-            0x000a000083, 0x00d00000f2, 0x00006000a0,
-            0x0d0000f00a, 0x00c000038a, 0x00200400c1,
-            0x0000b000f0, 0x0dc00000c1, 0x08004300b8
+            0x800f008900000001, 0x00a0000f00890082, 0x0030a0a00f0089ff,
+            0x000a00d0f0089080, 0x00d000f00890a08b, 0x040f00890000f0f1,
+            0x00c000f0089000a1, 0x00500f00890f0089, 0x00500f008900c08a,
+            0x00d000f0089000af, 0x00a000f008900d09, 0x000200200f00890a,
+            0x00f0000f008900cb, 0x00f000f00890d088, 0x0050002080f0089f,
+            0x000a0000f0089083, 0x00d00000f00890f2, 0x00006000a00f0089,
+            0x0d0000f00a0f0089, 0x00c00000f008938a, 0x00200400c10f0089,
+            0x0000b000f00f0089, 0x00f0089dc00000c1, 0x08004300b0f00898
         };
         const uint64_t keccakf_rotc[25] = {
             1,  3,  6,  10, 15, 21, 28, 36, 45, 55, 2,  14,
@@ -116,12 +117,12 @@ int main(int argc, char *argv[]){
             {
                 if(p < RATE)
                 {
-                    blocks[i][j][k] = input[i*RATE + p];
+                    blocks[i][j][k] = input[i*RATE + p]; //
                     p++; //broji koliko clanova je unijeto
                 }
                 else
                 {   
-                    blocks[i][j][k] = 0x0000000000; //ostali bajtovi idu na 0
+                    blocks[i][j][k] = 0x0000000000000000; //ostali bajtovi idu na 0
                 }
             }
         }
@@ -133,7 +134,7 @@ int main(int argc, char *argv[]){
      uint64_t state[MATRIX_DIM][MATRIX_DIM];
     for(int i = 0; i < MATRIX_DIM; i++)
         for (int k = 0; k < MATRIX_DIM; k++)
-            state[i][k] = 0x0000000000;
+            state[i][k] = 0x0000000000000000;
 
     /*absorb the input into the state: 
     for each block Pi:
@@ -212,10 +213,10 @@ int main(int argc, char *argv[]){
     }
 
     //initialize Z to be the empty string
-     uint64_t z[OUTPUT_SIZE + 1];
+    uint64_t z[OUTPUT_SIZE + 1];
     for (size_t i = 0; i < OUTPUT_SIZE; i++)
     {
-        z[i] = 0x00000000;
+        z[i] = 0x0000000000000000;
     }
     z[OUTPUT_SIZE] = '\0';
     
@@ -227,23 +228,22 @@ int main(int argc, char *argv[]){
         for (size_t j = 0; j < MATRIX_DIM; j++)
         {
             z[p++] = state[i][j];
-            if(p == OUTPUT_SIZE - 1)
+            if(p == OUTPUT_SIZE)
                 break;
         }
-        if(p == OUTPUT_SIZE - 1)
+        if(p == OUTPUT_SIZE)
             break;
     }
     printf("Sha3 digest: %s\n\n0x",z);
     for (size_t i = 0; i < OUTPUT_SIZE; i++)
     {
-         printf("%08x",z[i]);
+         printf("%016x",z[i]);
     }
     printf("\n\n");
     for (size_t i = 0; i < OUTPUT_SIZE; i++)
     {
-         printf("%08x ",z[i]);
-    }
-    
+         printf("%016x ",z[i]);
+    }    
 
     //if Z is still less than d bits long, apply f to S, yielding a new state S
     //truncate Z to d bits
