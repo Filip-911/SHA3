@@ -4,11 +4,11 @@
 
 #include "sha3_functions.h"
 
-#define WORD_SIZE 64
-#define RATE (576/WORD_SIZE)       //  12
-#define CAPACITY (1024/WORD_SIZE)    // +13
-#define SIZE (1600/WORD_SIZE)       // =25
-#define OUTPUT_SIZE (512/WORD_SIZE)
+#define WORD_SIZE 32
+#define RATE (256/WORD_SIZE)       //  12
+#define CAPACITY (544/WORD_SIZE)    // +13
+#define SIZE (800/WORD_SIZE)       // =25
+#define OUTPUT_SIZE (224/WORD_SIZE)
 
 #define MATRIX_DIM 5    
 
@@ -52,25 +52,25 @@ int main(int argc, char *argv[]){
     }
 
         // constants
-        const uint64_t keccakf_rndc[24] = {
-            0x800f008900000001, 0x00a0000f00890082, 0x0030a0a00f0089ff,
-            0x000a00d0f0089080, 0x00d000f00890a08b, 0x040f00890000f0f1,
-            0x00c000f0089000a1, 0x00500f00890f0089, 0x00500f008900c08a,
-            0x00d000f0089000af, 0x00a000f008900d09, 0x000200200f00890a,
-            0x00f0000f008900cb, 0x00f000f00890d088, 0x0050002080f0089f,
-            0x000a0000f0089083, 0x00d00000f00890f2, 0x00006000a00f0089,
-            0x0d0000f00a0f0089, 0x00c00000f008938a, 0x00200400c10f0089,
-            0x0000b000f00f0089, 0x00f0089dc00000c1, 0x08004300b0f00898
+        const int32_t keccakf_rndc[24] = {
+            0x00000001, 0x00890082, 0xaf0089ff,
+            0xf0089080, 0x0890a08b, 0x0000f0f1,
+            0x089000a1, 0x890f0089, 0x0900c08a,
+            0x089000af, 0x08900d09, 0x0f00890a,
+            0x008900cb, 0x0890d088, 0x00f0089f,
+            0xf0089083, 0xf00890f2, 0x000f0089,
+            0x0a0f0089, 0xf008938a, 0x010f0089,
+            0xf00f0089, 0xc00000c1, 0x00f00898
         };
-        const uint64_t keccakf_rotc[25] = {
+        const int32_t keccakf_rotc[25] = {
             1,  3,  6,  10, 15, 21, 28, 36, 45, 55, 2,  14,
             27, 41, 56, 8,  25, 43, 62, 18, 39, 61, 20, 44
         };
-         uint64_t temp;
-         uint64_t B[5][5];
-         uint64_t C[5];
-         uint64_t D[5];
-         uint64_t pi[1][1];
+         int32_t temp;
+         int32_t B[5][5];
+         int32_t C[5];
+         int32_t D[5];
+         int32_t pi[1][1];
     /*
     TO DO 
     ABSORB
@@ -107,7 +107,7 @@ int main(int argc, char *argv[]){
     int blockCount = pad(input,inputLen);
   
     // Napravi niz matrica 5x5 i postavi prvih RATE clanova na one iz input stringa
-    uint64_t blocks[blockCount][MATRIX_DIM][MATRIX_DIM];
+    int32_t blocks[blockCount][MATRIX_DIM][MATRIX_DIM];
     int p=0;
     for (int i = 0; i < blockCount; i++)
     {
@@ -117,12 +117,12 @@ int main(int argc, char *argv[]){
             {
                 if(p < RATE)
                 {
-                    blocks[i][j][k] = input[i*RATE + p]; //
+                    blocks[i][j][k] = (int32_t) input[i*RATE + p]; //
                     p++; //broji koliko clanova je unijeto
                 }
                 else
                 {   
-                    blocks[i][j][k] = 0x0000000000000000; //ostali bajtovi idu na 0
+                    blocks[i][j][k] = 0x00000000; //ostali bajtovi idu na 0
                 }
             }
         }
@@ -131,10 +131,10 @@ int main(int argc, char *argv[]){
     free(input);
 
     // initialize the state S to a inputing of b zero bits
-     uint64_t state[MATRIX_DIM][MATRIX_DIM];
+     int32_t state[MATRIX_DIM][MATRIX_DIM];
     for(int i = 0; i < MATRIX_DIM; i++)
         for (int k = 0; k < MATRIX_DIM; k++)
-            state[i][k] = 0x0000000000000000;
+            state[i][k] = 0x00000000;
 
     /*absorb the input into the state: 
     for each block Pi:
@@ -207,16 +207,16 @@ int main(int argc, char *argv[]){
 
             //iota
             //arbitrary lane in the state is xored with the constants
-               state[x][y] ^= keccakf_rndc[n];
+               state[0][1] ^= keccakf_rndc[n];
         }
 
     }
 
     //initialize Z to be the empty string
-    uint64_t z[OUTPUT_SIZE + 1];
+    int32_t z[OUTPUT_SIZE + 1];
     for (size_t i = 0; i < OUTPUT_SIZE; i++)
     {
-        z[i] = 0x0000000000000000;
+        z[i] = 0x00000000;
     }
     z[OUTPUT_SIZE] = '\0';
     
@@ -237,12 +237,12 @@ int main(int argc, char *argv[]){
     printf("Sha3 digest: %s\n\n0x",z);
     for (size_t i = 0; i < OUTPUT_SIZE; i++)
     {
-         printf("%016x",z[i]);
+         printf("%08x", z[i]);
     }
     printf("\n\n");
     for (size_t i = 0; i < OUTPUT_SIZE; i++)
     {
-         printf("%016x ",z[i]);
+         printf("%08x ", z[i]);
     }    
 
     //if Z is still less than d bits long, apply f to S, yielding a new state S

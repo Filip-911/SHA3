@@ -7,6 +7,6 @@
 #define KECCAKF_ROUNDS 24 // 12 + 2*l; l=3
 
 void keccak_f(char* A[MATRIX_DIM][MATRIX_DIM]);
-uint64_t rotate_right(uint64_t a, const uint64_t rotc);
+int32_t rotate_right(int32_t a, const int32_t rotc);
 
 #endif
