@@ -5,10 +5,10 @@
 #include "sha3_functions.h"
 
 #define WORD_SIZE 64
-#define RATE (576/WORD_SIZE)       //  12
-#define CAPACITY (1024/WORD_SIZE)    // +13
+#define RATE (512/WORD_SIZE)       //  12
+#define CAPACITY (1088/WORD_SIZE)    // +13
 #define SIZE (1600/WORD_SIZE)       // =25
-#define OUTPUT_SIZE (512/WORD_SIZE)
+#define OUTPUT_SIZE (256/WORD_SIZE)
 
 #define MATRIX_DIM 5    
 
@@ -196,18 +196,17 @@ int main(int argc, char *argv[]){
             {
                 for(int y = 0; y < MATRIX_DIM; y++)
                 {
-                    pi[1][1] = state[x][y];
+                    pi[0][0] = state[x][y];
                     temp = x;
                     x = y;
                     y = (2*temp + 3*y) % MATRIX_DIM;
-                    B[x][y] = pi[1][1];
+                    state[x][y] = pi[0][0];
                 }
-            state[x][y] = B[x][y];
             }
 
             //iota
             //arbitrary lane in the state is xored with the constants
-               state[x][y] ^= keccakf_rndc[n];
+               state[0][0] ^= keccakf_rndc[n];
         }
 
     }
