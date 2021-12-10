@@ -82,10 +82,10 @@
                *(A[x][y]) ^= keccakf_rndc[n];
         }
     }
-    int32_t rotate_right(int32_t a, const int32_t rotc)
+    uint16_t rotate_right(uint16_t a, const uint16_t rotc)
     {
-        int32_t rot = rotc % 64;
-        int32_t tmp;
+        uint16_t rot = rotc % 64;
+        uint16_t tmp;
         while(rot)
         {   
             tmp = a & 0x8000000000000000;
