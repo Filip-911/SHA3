@@ -234,41 +234,46 @@ int main(int argc, char *argv[]){
         if(p == OUTPUT_SIZE)
             break;
     }
-    char hex[OUTPUT_SIZE * WORD_SIZE];
-    for (size_t i = 0; i < OUTPUT_SIZE; i++)
-    {
-        hex_value(z[i], &hex[i*8]);
-    }
-    
-    
 
-    printf("Sha3 digest: 0x%s\n\n",hex);
-    /*
+    int hex_amount =  OUTPUT_SIZE * WORD_SIZE / 8 * 2 + 1;
+    char hex[hex_amount];
     for (size_t i = 0; i < OUTPUT_SIZE; i++)
     {
-         printf("%016x",z[i]);
+        hex_value(z[i], &hex[i * WORD_SIZE/8 *2]);
     }
-    printf("\n\n");
+    hex[hex_amount - 1] = '\0';
+
+    printf("\nSha3 digest: 0x%s\n", hex);
+    for (size_t i = 0; i < hex_amount; i++)
+    {
+        printf("%c", hex[i]);
+    }
+    printf("\n");
     for (size_t i = 0; i < OUTPUT_SIZE; i++)
     {
-         printf("%016x ",z[i]);
-    }    */
-
+        printf("%lu  ", z[i]);
+    }
+    printf("\n");
+    
     //if Z is still less than d bits long, apply f to S, yielding a new state S
     //truncate Z to d bits
     //no need for that ^
     //                 |
-
-    
     return 0;
 }
 
 char hex_value(uint64_t dec_value, char* hex)
 {   
-    for(int i = 0; i < 8; i++)
+    uint64_t tmp = dec_value;
+    uint64_t rem;
+    for (size_t i = 0; i < 16; i++)
     {
-        sprintf(&hex[i], "%02x", dec_value);
-        dec_value >>= 1;
+        rem = tmp % 16;
+        if(rem < 10)
+            hex[15 - i] = 48 + rem;
+        else
+            hex[15 - i] = 55 + rem;
+        tmp /= 16;
     }
-
+    
 }
