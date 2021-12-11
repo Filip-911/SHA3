@@ -11,6 +11,7 @@
 #define OUTPUT_SIZE (256/WORD_SIZE)
 
 #define MATRIX_DIM 5    
+char hex_value(uint64_t , char* hex);
 
 /*
     SIZE = 25 * 2^l; 
@@ -165,7 +166,7 @@ int main(int argc, char *argv[]){
 
             for (int x = 0; x < MATRIX_DIM; x++)
             {
-                D[x] = C[x-1] ^ rotate_right(C[(x + 1) % MATRIX_DIM], 1);
+                D[x] = C[(x - 1) % MATRIX_DIM] ^ rotate_right(C[(x + 1) % MATRIX_DIM], 1);
                 for (int y = 0; y < MATRIX_DIM; y++)
                 {
                     state[x][y] ^= D[x];
@@ -233,7 +234,16 @@ int main(int argc, char *argv[]){
         if(p == OUTPUT_SIZE)
             break;
     }
-    printf("Sha3 digest: %s\n\n0x",z);
+    char hex[OUTPUT_SIZE * WORD_SIZE];
+    for (size_t i = 0; i < OUTPUT_SIZE; i++)
+    {
+        hex_value(z[i], &hex[i*8]);
+    }
+    
+    
+
+    printf("Sha3 digest: 0x%s\n\n",hex);
+    /*
     for (size_t i = 0; i < OUTPUT_SIZE; i++)
     {
          printf("%016x",z[i]);
@@ -242,7 +252,7 @@ int main(int argc, char *argv[]){
     for (size_t i = 0; i < OUTPUT_SIZE; i++)
     {
          printf("%016x ",z[i]);
-    }    
+    }    */
 
     //if Z is still less than d bits long, apply f to S, yielding a new state S
     //truncate Z to d bits
@@ -251,4 +261,14 @@ int main(int argc, char *argv[]){
 
     
     return 0;
+}
+
+char hex_value(uint64_t dec_value, char* hex)
+{   
+    for(int i = 0; i < 8; i++)
+    {
+        sprintf(&hex[i], "%02x", dec_value);
+        dec_value >>= 1;
+    }
+
 }
