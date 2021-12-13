@@ -1,5 +1,5 @@
 CC 	= gcc
-OBJ	= sha3_main.o sha3_functions.o
+OBJ	= sha3_main.o
 TARGET 	= sha3
 
 all = $(TARGET)
