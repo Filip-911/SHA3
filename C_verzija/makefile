@@ -2,9 +2,9 @@ CC 	= gcc
 OBJ	= sha3_main.o
 TARGET 	= sha3
 
-all = $(TARGET)
+all = sha3
 
-$(TARGET) : $(OBJ)
-	$(CC) -o $(TARGET) $(OBJ)
+sha3 : sha3_main.o
+	gcc -o sha3 sha3_main.o
 clean :
-	rm -f $(OBJ) $(TARGET) *~
+	rm -f sha3_main.o sha3 *~
