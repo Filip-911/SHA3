@@ -112,8 +112,8 @@ int main(int argc, char *argv[]){
         for(int i = 0; i < MATRIX_DIM; i++)
             for (int k = 0; k < MATRIX_DIM; k++)
                 block[i][k] = 0x0000000000000000;
-        //absorb();
-        int p = 0;
+        absorb();
+        int p = 0;/*
         for (size_t i = 0; i < MATRIX_DIM; i++)
         {
             for (size_t j = 0; j < MATRIX_DIM; j++)
@@ -128,7 +128,7 @@ int main(int argc, char *argv[]){
                     p += 8;
                 }
             }
-        }/*
+        }*//*
         input+= RATE;
         printf("matrica prije hashovanja :\n");
         for (size_t i = 0; i < MATRIX_DIM; i++)
