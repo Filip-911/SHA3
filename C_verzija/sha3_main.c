@@ -35,8 +35,7 @@ int main(int argc, char *argv[]){
         printf("ERROR: Expected at least 1 argument\n");
         return 0;
     }
-    int prio = 0;
-	
+    int prio = 1;
     /*TO DO 
     ABSORB
     pad the input N using the pad function, yielding a padded bit string P with a length divisible by r such that len(p)/r is an integer)
@@ -94,7 +93,7 @@ int main(int argc, char *argv[]){
     
     absorb();
     free(input);
-    //block[0][0] = 0x0000000000000164;
+    //block[0][0] = 0x0000000000000164; //hard coded- keccak_f works
     //block[1][3] = 0x8000000000000000;
     /*
     if(prio)
