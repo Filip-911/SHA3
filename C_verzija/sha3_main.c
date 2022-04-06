@@ -19,14 +19,15 @@
 */
 
 void hex_value(uint64_t , char* hex);
+void hex_value_2(uint64_t , char* hex);
 uint64_t rotate_right(uint64_t a, const uint64_t rotc);
-int pad(unsigned char *input, size_t length);
+void pad(unsigned char *input, size_t length);
 void keccak_f();
 void absorb();
 
 uint64_t state[5][5];
 uint64_t block[5][5];
-char *input;
+unsigned char *input;
 
 int main(int argc, char *argv[]){
   
@@ -68,13 +69,13 @@ int main(int argc, char *argv[]){
       }
     
     //pad the input using the pad function
-    int blockCount = pad(input, inputLen);
+    pad(input, inputLen); // int blockCount = 
 	
     if(prio)
     {
         printf("Padded input:\n");
         for (size_t i = 0; i < RATE; i++)
-            printf("%d", input[i]);
+            printf("%x", input[i]);
     }
     
     // initialize the state S to a inputing of b zero bits
@@ -84,7 +85,7 @@ int main(int argc, char *argv[]){
     /*absorb the input into the state: 
     for each block Pi:
     extend Pi at the end by a inputing of CAPACITY zero bits, yielding one of length SIZE
-    XOR that with state
+    XOR thafst with state
     apply the block permutation f to the result, yielding a new state S and do it until you run out of blocks to xor with*/
 
     int pos = 0;
@@ -93,16 +94,6 @@ int main(int argc, char *argv[]){
     
     absorb();
     free(input);
-    //block[0][0] = 0x0000000000000164; //hard coded- keccak_f works
-    //block[1][3] = 0x8000000000000000;
-    /*
-    if(prio)
-    {
-        char print[17]; 
-        hex_value(block[0][0], print);
-        print[16] = '\0';
-        printf("\n0x%s -> first matrix element (0x648000000000000000) \n", print);
-    }*/
 
 	if(prio)
     {
@@ -155,48 +146,25 @@ int main(int argc, char *argv[]){
     {
         for (size_t j = 0; j < 5; j++)
         {
-            z[p++] = state[i][j];
+            z[p++] = state[j][i];
             if(p == z_amount)
                 break;
         }
         if(p == z_amount)
             break;
     }
+
             
     int hex_amount =  OUTPUT_SIZE * 2 + 1;
     char hex[hex_amount];
     for (size_t i = 0; i < z_amount; i++)
-        hex_value(z[i], &hex[i * WORD_SIZE *2]);
+        hex_value_2(z[i], &hex[i * WORD_SIZE *2]);
 
     hex[hex_amount - 1] = '\0';
 
+
     printf("\n\nSha3 digest: 0x%s\n\n", hex);
     
-    
-    if(prio) 
-    {
-        char* db;
-        hex_value(rotate_right(0x0000000000000081, 3), db);
-        printf("rotate test 0x0000000000000081:%s\n\n", db);
-
-        int n = 1;
-        if(*(char *)&n == 1)     // little endian if true
-            printf("little endian obv");
-    }
-
-    /*
-    for (size_t i = 0; i < hex_amount; i++)
-    {
-        printf("%c", hex[i]);
-    }
-    printf("\n\n");
-
-    for (size_t i = 0; i < z_amount; i++)
-    {
-        printf("%" PRIu64 " ", z[i]);
-    }
-    printf("\n\n");
-    */
     //if Z is still less than d bits long, apply f to S, yielding a new state S
     //truncate Z to d bits
     //no need for that ^
@@ -219,20 +187,37 @@ void hex_value(uint64_t dec_value, char* hex)
     }
 }
 
+void hex_value_2(uint64_t dec_value, char* hex)
+{   
+    uint64_t tmp = dec_value;
+    uint64_t rem;
+    int k = 1;
+    for (size_t i = 0; i < 16; i++)
+    {
+        rem = tmp % 16;
+        if(rem < 10)
+            hex[i + k] = 48 + rem;
+        else
+            hex[i + k] = 55 + rem;
+        tmp /= 16;
+        k = -k;
+    }
+}
+
 uint64_t rotate_right(uint64_t a, uint64_t rot)
 {
     rot &= 0x3f;
     return (a << rot) | (a >> (64 - rot));
 }
 
-int pad(unsigned char *input, size_t length)
+void pad(unsigned char *input, size_t length)
 {    
     int a;
     if(length + 1 == RATE)
     {
-      input = (char*)realloc(input, RATE + 1);
-      input[RATE - 1] = 0x18; //strcat(input, "0x81");
-      input[RATE] = '\0'; //strcat(input, "\n");
+      input = (unsigned char*)realloc(input, RATE + 1);
+      input[RATE - 1] = 0x18;
+      input[RATE] = '\0'; 
     }
     else 
     {
@@ -243,12 +228,12 @@ int pad(unsigned char *input, size_t length)
         input[length] = 0x01;
         for( int i = length + 1; i < a*RATE - 1; i++)
         {
-            input[i] = 0x00; //strcat(input, "0x00");
+            input[i] = 0x00;
         }
         input[a*RATE - 1] = 0x80;
         input[a*RATE] = '\0';
     }
-    return a;
+    //return a;
 }
 
 void absorb()        
@@ -262,15 +247,8 @@ void absorb()
             if(p <= RATE/8) // if you reached 17th member of the matrix - done
             {
                 for (size_t k = 0; k < WORD_SIZE; k++) // put 8 bytes into one member of the matrix
-                    {
-                        if(input[i*5*WORD_SIZE + j*WORD_SIZE + k] & 0x80)
-                        {
-                            temp = input[i*5*WORD_SIZE + j*WORD_SIZE + k];
-                            temp &= 0x00000000000000ff;
-                            block[j][i] |= temp;
-                        }
-                        else 
-                            block[j][i] |= input[i*5*WORD_SIZE + j*WORD_SIZE + k];
+                    { 
+                        block[j][i] |= input[i*5*WORD_SIZE + j*WORD_SIZE + WORD_SIZE - k - 1];
                         if(k != WORD_SIZE - 1)
                             block[j][i] <<= WORD_SIZE;
                     }
@@ -304,14 +282,6 @@ void keccak_f()
             {28, 55, 25, 21, 56},
             {27, 20, 39, 8, 14}
         };
-
-        /*
-        {{0, 1, 62, 28, 27},
-        {36, 44, 6, 55, 20},
-        {3, 10, 43, 25, 39},
-        {18, 2, 61, 56, 14},
-        {41, 45, 15, 21, 8}};
-        */
 
          uint64_t temp;
          uint64_t B[5][5];
