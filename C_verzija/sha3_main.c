@@ -24,6 +24,7 @@ uint64_t rotate_right(uint64_t a, const uint64_t rotc);
 int pad(unsigned char *input, size_t *length);
 void keccak_f();
 void absorb(unsigned char *input, int inputPos);
+void squeeze();
 
 uint64_t state[5][5];
 uint64_t block[5][5];
@@ -134,17 +135,32 @@ int main(int argc, char *argv[]){
                 printf("\n");
             }
     }
-    //initialize Z to be the empty string
-    int z_amount = OUTPUT_SIZE/8;
-    uint64_t z[z_amount + 1];
+
+    squeeze();
     
+    //if Z is still less than d bits long, apply f to S, yielding a new state S
+    //truncate Z to d bits
+    //no need for that ^
+    //                 |
+    return 0;
+}
+void squeeze() 
+{   
+
+    int hex_amount =  OUTPUT_SIZE * 2 + 1;
+    unsigned char hex[hex_amount];
+
+    int z_amount = OUTPUT_SIZE/8 + 1;
+    uint64_t z[z_amount];
+    
+    //initialize Z to be the empty string
     for (size_t i = 0; i < z_amount; i++)
     {
         z[i] = 0x0000000000000000;
     }
     
-    z[z_amount] = '\0';
-    
+    z[z_amount -1] = '\0';
+
     //while the length of Z is less than OUTPUT_SIZE:
     //append the first RATE bytes of STATE to Z
     int p = 0 ; 
@@ -160,24 +176,13 @@ int main(int argc, char *argv[]){
             break;
     }
 
-            
-    int hex_amount =  OUTPUT_SIZE * 2 + 1;
-    char hex[hex_amount];
     for (size_t i = 0; i < z_amount; i++)
         hex_value_2(z[i], &hex[i * WORD_SIZE *2]);
-
     hex[hex_amount - 1] = '\0';
 
-
     printf("\n\nSha3 digest: 0x%s\n\n", hex);
-    
-    //if Z is still less than d bits long, apply f to S, yielding a new state S
-    //truncate Z to d bits
-    //no need for that ^
-    //                 |
-    return 0;
-}
 
+}
 void hex_value(uint64_t dec_value, char* hex)
 {   
     uint64_t tmp = dec_value;
