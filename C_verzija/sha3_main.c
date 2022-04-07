@@ -25,6 +25,8 @@ int pad(unsigned char *input, size_t *length);
 void keccak_f();
 void absorb(unsigned char *input, int inputPos);
 void squeeze();
+void printMatrix(int prio);
+
 
 uint64_t state[5][5];
 uint64_t block[5][5];
@@ -36,23 +38,6 @@ int main(int argc, char *argv[]){
         printf("ERROR: Expected at least 1 argument\n");
         return 0;
     }
-    int prio = 0;
-    /*TO DO 
-    ABSORB
-    pad the input N using the pad function, yielding a padded bit string P with a length divisible by r such that len(p)/r is an integer)
-    break P into n consecutive r-bit pieces P0, ..., Pn−1
-    initialize the state S to a string of b zero bits
-    absorb the input into the state: for each block Pi:
-    extend Pi at the end by a string of c zero bits, yielding one of length b
-    XOR that with S
-    apply the block permutation f to the result, yielding a new state S
-    SQUEEZE
-    initialize Z to be the empty string
-    while the length of Z is less than d:
-    append the first r bits of S to Z
-    if Z is still less than d bits long, apply f to S, yielding a new state S
-    truncate Z to d bits*/
-
   
     unsigned char *input;
     size_t inputLen = strlen(argv[1]);
@@ -72,45 +57,24 @@ int main(int argc, char *argv[]){
     //pad the input using the pad function
     int blockCount = pad(input, &inputLen);
 	
-    printf("%" PRIu64 " ", inputLen);
-    if(prio)
-    {
-        printf("Padded input:\n");
-        for (size_t i = 0; i < inputLen; i++)
-            printf("%x ", input[i]);
-    }
-    
     // initialize the state S to a inputing of b zero bits
-    memset(state, 0, 5*5*sizeof(uint64_t));
+    for (size_t i = 0; i < 5; i++)
+        for (size_t j = 0; j < 5; j++)
+            state[i][j] = 0x000000000000000000;
 
-    /*absorb the input into the state: 
-    for each block Pi:
-    extend Pi at the end by a inputing of CAPACITY zero bits, yielding one of length SIZE
-    XOR thafst with state
-    apply the block permutation f to the result, yielding a new state S and do it until you run out of blocks to xor with*/
+    /*absorb the input into the state => for each block Pi:
+    extend Pi at the end by a inputing of CAPACITY zero bits, yielding one of length SIZE,
+    XOR that with state and apply the block permutation f to the result, yielding a new state S and do it until you run out of blocks to xor with*/
 
-    int pos = 0;
-    if(prio)    
-        printf("\n\ninput [%d] = %0x\n ", pos, input[pos]);
-    
     int inputPos = 0;
     for (size_t i = 0; i < blockCount; i++)
     {
-        memset(block, 0, 5*5*sizeof(uint64_t));
+        for (size_t i = 0; i < 5; i++)
+            for (size_t j = 0; j < 5; j++)
+                block[i][j] = 0x000000000000000000;
+
         absorb(input, inputPos);
         inputPos += RATE;
-        //if(i == 0)
-            if(prio)
-            {
-                printf("\n\nMatrica prije hashovanja :\n");
-                for (size_t i = 0; i < 5; i++)
-                    for (size_t j = 0; j < 5; j++)
-                    {
-                        printf("%" PRIu64 " ", block[i][j]);
-                        if(j == 4)
-                        printf("\n");
-                    }
-            }
         
         for (int j = 0; j < 5; j++)
             for (int k = 0; k < 5; k++)
@@ -119,31 +83,12 @@ int main(int argc, char *argv[]){
         keccak_f();
     }
     free(input);
-        
-	if(prio)
-    {
-        char *mHex = (char*) malloc(25 * 8 * sizeof(char) + 1);
-        mHex[25 * 8] = '\0';
-        printf("\n\nMatrica nakon hashovanja :\n");
-        for (size_t i = 0; i < 5; i++)
-            for (size_t j = 0; j < 5; j++)
-            {
-                hex_value(state[i][j], mHex);
-                printf("%s ", mHex);
-                mHex += 16;
-                if(j == 4)
-                printf("\n");
-            }
-    }
 
     squeeze();
-    
-    //if Z is still less than d bits long, apply f to S, yielding a new state S
-    //truncate Z to d bits
-    //no need for that ^
-    //                 |
+
     return 0;
 }
+
 void squeeze() 
 {   
 
