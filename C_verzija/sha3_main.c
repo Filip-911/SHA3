@@ -35,7 +35,7 @@ int main(int argc, char *argv[]){
         printf("ERROR: Expected at least 1 argument\n");
         return 0;
     }
-    int prio = 1;
+    int prio = 0;
     /*TO DO 
     ABSORB
     pad the input N using the pad function, yielding a padded bit string P with a length divisible by r such that len(p)/r is an integer)
