@@ -21,13 +21,12 @@
 void hex_value(uint64_t , char* hex);
 void hex_value_2(uint64_t , char* hex);
 uint64_t rotate_right(uint64_t a, const uint64_t rotc);
-void pad(unsigned char *input, size_t length);
+int pad(unsigned char *input, size_t *length);
 void keccak_f();
-void absorb();
+void absorb(unsigned char *input, int inputPos);
 
 uint64_t state[5][5];
 uint64_t block[5][5];
-unsigned char *input;
 
 int main(int argc, char *argv[]){
   
@@ -54,6 +53,7 @@ int main(int argc, char *argv[]){
     truncate Z to d bits*/
 
   
+    unsigned char *input;
     size_t inputLen = strlen(argv[1]);
     
     //concatenate all the args to the input string
@@ -69,17 +69,17 @@ int main(int argc, char *argv[]){
       }
     
     //pad the input using the pad function
-    pad(input, inputLen); // int blockCount = 
+    int blockCount = pad(input, &inputLen);
 	
+    printf("%" PRIu64 " ", inputLen);
     if(prio)
     {
         printf("Padded input:\n");
-        for (size_t i = 0; i < RATE; i++)
-            printf("%x", input[i]);
+        for (size_t i = 0; i < inputLen; i++)
+            printf("%x ", input[i]);
     }
     
     // initialize the state S to a inputing of b zero bits
-    memset(block, 0, 5*5*sizeof(uint64_t));
     memset(state, 0, 5*5*sizeof(uint64_t));
 
     /*absorb the input into the state: 
@@ -92,26 +92,32 @@ int main(int argc, char *argv[]){
     if(prio)    
         printf("\n\ninput [%d] = %0x\n ", pos, input[pos]);
     
-    absorb();
-    free(input);
-
-	if(prio)
+    int inputPos = 0;
+    for (size_t i = 0; i < blockCount; i++)
     {
-        printf("\n\nMatrica prije hashovanja :\n");
-        for (size_t i = 0; i < 5; i++)
-            for (size_t j = 0; j < 5; j++)
+        memset(block, 0, 5*5*sizeof(uint64_t));
+        absorb(input, inputPos);
+        inputPos += RATE;
+        //if(i == 0)
+            if(prio)
             {
-                printf("%" PRIu64 " ", block[i][j]);
-                if(j == 4)
-                printf("\n");
+                printf("\n\nMatrica prije hashovanja :\n");
+                for (size_t i = 0; i < 5; i++)
+                    for (size_t j = 0; j < 5; j++)
+                    {
+                        printf("%" PRIu64 " ", block[i][j]);
+                        if(j == 4)
+                        printf("\n");
+                    }
             }
-    }
-    
-    for (int j = 0; j < 5; j++)
-	    for (int k = 0; k < 5; k++)
-			state[j][k] ^= block[j][k];
+        
+        for (int j = 0; j < 5; j++)
+            for (int k = 0; k < 5; k++)
+                state[j][k] ^= block[j][k];
 
-	keccak_f();
+        keccak_f();
+    }
+    free(input);
         
 	if(prio)
     {
@@ -210,10 +216,10 @@ uint64_t rotate_right(uint64_t a, uint64_t rot)
     return (a << rot) | (a >> (64 - rot));
 }
 
-void pad(unsigned char *input, size_t length)
+int pad(unsigned char *input, size_t *length)
 {    
     int a;
-    if(length + 1 == RATE)
+    if((*length) + 1 == RATE)
     {
       input = (unsigned char*)realloc(input, RATE + 1);
       input[RATE - 1] = 0x18;
@@ -221,22 +227,23 @@ void pad(unsigned char *input, size_t length)
     }
     else 
     {
-        a = length/RATE;
+        a = (*length)/RATE;
         a++;
         input = (unsigned char*)realloc(input, a*RATE + 1); 
 
-        input[length] = 0x01;
-        for( int i = length + 1; i < a*RATE - 1; i++)
+        input[*length] = 0x01;
+        for( int i = (*length) + 1; i < a*RATE - 1; i++)
         {
             input[i] = 0x00;
         }
+        *length = a*RATE;
         input[a*RATE - 1] = 0x80;
         input[a*RATE] = '\0';
     }
-    //return a;
+    return a;
 }
 
-void absorb()        
+void absorb(unsigned char *input, int inputPos)        
 {
     uint64_t temp = 0;
     int p = 0;
@@ -248,7 +255,7 @@ void absorb()
             {
                 for (size_t k = 0; k < WORD_SIZE; k++) // put 8 bytes into one member of the matrix
                     { 
-                        block[j][i] |= input[i*5*WORD_SIZE + j*WORD_SIZE + WORD_SIZE - k - 1];
+                        block[j][i] |= input[i*5*WORD_SIZE + j*WORD_SIZE + WORD_SIZE - 1 - k + inputPos];
                         if(k != WORD_SIZE - 1)
                             block[j][i] <<= WORD_SIZE;
                     }
